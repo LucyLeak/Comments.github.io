@@ -1,1 +1,106 @@
-a
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Comentários para Lucy</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #121212;
+      color: #fff;
+      padding: 2rem;
+      max-width: 600px;
+      margin: auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: #ff80bf;
+    }
+
+    form {
+      margin-bottom: 1.5rem;
+    }
+
+    textarea, input[type="text"] {
+      width: 100%;
+      padding: 0.8rem;
+      margin-top: 0.5rem;
+      border-radius: 5px;
+      border: none;
+      resize: vertical;
+      font-size: 1rem;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.8rem;
+      background: #ff80bf;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .comment {
+      background: #1e1e1e;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+
+    .comment strong {
+      color: #ffb3d9;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Deixe um comentário para a Lucy 💬</h1>
+
+  <form id="comment-form">
+    <label>Seu nome:</label>
+    <input type="text" id="name" required>
+
+    <label>Comentário:</label>
+    <textarea id="message" rows="4" required></textarea>
+
+    <button type="submit">Enviar</button>
+  </form>
+
+  <section id="comments"></section>
+
+  <script>
+    const form = document.getElementById('comment-form');
+    const commentsSection = document.getElementById('comments');
+    let comments = [];
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const name = document.getElementById('name').value.trim();
+      const message = document.getElementById('message').value.trim();
+
+      if (name && message) {
+        const comment = { name, message, timestamp: Date.now() };
+        comments.unshift(comment);
+        renderComments();
+        form.reset();
+      }
+    });
+
+    function renderComments() {
+      commentsSection.innerHTML = '';
+      comments.slice(0, 10).forEach(c => {
+        const el = document.createElement('div');
+        el.className = 'comment';
+        el.innerHTML = `<strong>${c.name}</strong><br>${c.message}`;
+        commentsSection.appendChild(el);
+      });
+    }
+  </script>
+
+</body>
+</html>
