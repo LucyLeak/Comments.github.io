@@ -1,106 +1,143 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Comentários para Lucy</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #121212;
-      color: #fff;
-      padding: 2rem;
-      max-width: 600px;
-      margin: auto;
-    }
-
-    h1 {
-      text-align: center;
-      color: #ff80bf;
-    }
-
-    form {
-      margin-bottom: 1.5rem;
-    }
-
-    textarea, input[type="text"] {
-      width: 100%;
-      padding: 0.8rem;
-      margin-top: 0.5rem;
-      border-radius: 5px;
-      border: none;
-      resize: vertical;
-      font-size: 1rem;
-    }
-
-    button {
-      margin-top: 1rem;
-      padding: 0.8rem;
-      background: #ff80bf;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 1rem;
-    }
-
-    .comment {
-      background: #1e1e1e;
-      padding: 1rem;
-      border-radius: 8px;
-      margin-bottom: 1rem;
-    }
-
-    .comment strong {
-      color: #ffb3d9;
-    }
-  </style>
-</head>
-<body>
-
-  <h1>Deixe um comentário para a Lucy 💬</h1>
-
-  <form id="comment-form">
-    <label>Seu nome:</label>
-    <input type="text" id="name" required>
-
-    <label>Comentário:</label>
-    <textarea id="message" rows="4" required></textarea>
-
-    <button type="submit">Enviar</button>
-  </form>
-
-  <section id="comments"></section>
-
-  <script>
-    const form = document.getElementById('comment-form');
-    const commentsSection = document.getElementById('comments');
-    let comments = [];
-
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-
-      const name = document.getElementById('name').value.trim();
-      const message = document.getElementById('message').value.trim();
-
-      if (name && message) {
-        const comment = { name, message, timestamp: Date.now() };
-        comments.unshift(comment);
-        renderComments();
-        form.reset();
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Lucy's Comment Section</title>
+    <style>
+      html, body {
+        font-size: 1rem;
+        font-family: 'Open Sans', sans-serif;
+        word-wrap: break-word;
+        background: url('https://ella.janitorai.com/background-image/LSPiYXHPGNebyLBcJQXwB.webp');
+        color: #e2e2e2;
+        padding: 2em;
       }
-    });
+      .PageModule {
+        margin: 1em 0;
+        padding: 2em;
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+      }
+      .PageModule>h2 {
+        font-size: 1.25rem;
+        margin-bottom: .5em;
+      }
+      label {
+        display: block;
+        margin-top: 1em;
+        font-weight: bold;
+      }
+      input, textarea {
+        width: 100%;
+        padding: .5em;
+        margin-top: .25em;
+        border-radius: 5px;
+        resize: vertical;
+        border: none;
+        background: #222;
+        color: #fff;
+      }
+      button {
+        margin-top: 1em;
+        padding: .5em 1em;
+        border: none;
+        border-radius: 5px;
+        background: #53b14f;
+        color: #fff;
+        cursor: pointer;
+      }
+      .comment {
+        background: rgba(255, 255, 255, 0.05);
+        padding: .75em;
+        margin-top: 2em;
+        border-radius: 5px;
+      }
+      .comment strong {
+        color: #ffffff;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="Title">
+      <h1>Leave your comment here 💬</h1>
+      <span>Hi, I'm Lucy. This comment section was created for feedback. Please be respectful and follow the site guidelines.</span>
+    </div>
 
-    function renderComments() {
-      commentsSection.innerHTML = '';
-      comments.slice(0, 10).forEach(c => {
-        const el = document.createElement('div');
-        el.className = 'comment';
-        el.innerHTML = `<strong>${c.name}</strong><br>${c.message}`;
-        commentsSection.appendChild(el);
+    <div id="CoreModules">
+      <div id="InputModule" class="PageModule StrangeBerryModule">
+        <form id="CommentyModule">
+          <label>Your name</label>
+          <input type="text" id="name" required>
+
+          <label>Comment</label>
+          <textarea id="comment" rows="2" required></textarea>
+          <button type="submit">Add comment</button>
+        </form>
+      </div>
+
+      <div id="CommentModule" class="PageModule StrangeBerryModule">
+        <h2>Recent Comments</h2>
+        <section class="Comments"></section>
+      </div>
+    </div>
+
+    <script>
+      const form = document.getElementById('CommentyModule');
+      const nameInput = document.getElementById('name');
+      const commentInput = document.getElementById('comment');
+      const commentsSection = document.querySelector('.Comments');
+
+      // Carrega comentários do localStorage
+      function loadComments() {
+        const comments = JSON.parse(localStorage.getItem('lucyComments') || '[]');
+        commentsSection.innerHTML = '';
+
+        comments.forEach((entry, index) => {
+          const div = document.createElement('div');
+          div.className = 'comment';
+          div.innerHTML = `
+            <strong>${entry.name}:</strong><br>${entry.comment}
+            <br><button class="delete-button" data-index="${index}">🗑️ Delete</button>
+          `;
+          commentsSection.appendChild(div);
+        });
+
+        // Adiciona os listeners para cada botão de deletar
+        document.querySelectorAll('.delete-button').forEach(button => {
+          button.addEventListener('click', function () {
+            const index = this.getAttribute('data-index');
+            deleteComment(index);
+          });
+        });
+      }
+
+      // Deleta comentário com base no índice
+      function deleteComment(index) {
+        const comments = JSON.parse(localStorage.getItem('lucyComments') || '[]');
+        comments.splice(index, 1);
+        localStorage.setItem('lucyComments', JSON.stringify(comments));
+        loadComments();
+      }
+
+      // Adiciona novo comentário
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const name = nameInput.value.trim();
+        const comment = commentInput.value.trim();
+        if (!name || !comment) return;
+
+        const comments = JSON.parse(localStorage.getItem('lucyComments') || '[]');
+        comments.unshift({ name, comment });
+        localStorage.setItem('lucyComments', JSON.stringify(comments));
+
+        nameInput.value = '';
+        commentInput.value = '';
+        loadComments();
       });
-    }
-  </script>
 
-</body>
+      loadComments();
+    </script>
+  </body>
 </html>
