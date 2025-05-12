@@ -1,43 +1,205 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-    <style>
-        .comentario {
-            background: #f0f0f0;
-            border-radius: 10px;
-            padding: 15px;
-            margin: 10px;
-            font-family: Arial;
-        }
-        .nome {
-            color: #ff6b6b;
-            font-weight: bold;
-        }
-        textarea { width: 300px; height: 100px; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Comentários para Lucy</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #121212;
+      color: #fff;
+      padding: 2rem;
+      max-width: 600px;
+      margin: auto;
+    }
+
+    h1 {
+      position: relative;
+      text-align: center;
+      color: #ff80bf;
+    }
+
+    /* Botão de login admin invisível */
+    #admin-login {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 20px;
+      height: 20px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      opacity: 0;
+    }
+
+    .notice {
+      background: #ff4d4d;
+      color: #fff;
+      padding: 0.8rem;
+      border-radius: 5px;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    form {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 0.8rem;
+      margin-top: 0.5rem;
+      border-radius: 8px;
+      border: 2px solid #333;
+      background: #1e1e1e;
+      color: #fff;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus, textarea:focus {
+      outline: none;
+      border-color: #ff80bf;
+      box-shadow: 0 0 5px rgba(255, 128, 191, 0.5);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .char-count {
+      text-align: right;
+      font-size: 0.85rem;
+      color: #aaa;
+      margin-top: 0.2rem;
+    }
+
+    button {
+      background: #ff80bf;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .submit-btn {
+      padding: 0.6rem 1rem;
+      font-size: 0.95rem;
+      margin-top: 1.5rem;
+      width: auto;
+    }
+
+    .submit-btn:hover {
+      background: #e673c1;
+    }
+
+    .comment {
+      background: #1e1e1e;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .comment-text {
+      max-width: calc(100% - 90px);
+    }
+
+    .comment strong {
+      color: #ffb3d9;
+    }
+
+    .delete-btn {
+      background: #ff4d4d;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 0.4rem 0.8rem;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: background 0.3s;
+      display: none; /* Inicialmente escondido */
+    }
+
+    .delete-btn:hover {
+      background: #ff1a1a;
+    }
+  </style>
 </head>
 <body>
-    <h1>Deixe seu comentário! 💬</h1>
-    
-    <form id="commentForm">
-        <input type="text" id="nome" placeholder="Seu nome"><br>
-        <textarea id="comentario" placeholder="Seu comentário..."></textarea><br>
-        <button type="submit">Enviar</button>
-    </form>
 
-    <div id="comentarios"></div>
+  <h1>Deixe um comentário para a Lucy 💬
+    <button id="admin-login" title="Login de administrador"></button>
+  </h1>
+  <div class="notice">
+    Observação: Comentários desrespeitosos ou que violem as diretrizes do JanitorAI serão deletados sem aviso.
+  </div>
 
-    <script>
-    async function enviarComentario() {
-      const nome = document.getElementById('nome').value;
-      const comentario = document.getElementById('comentario').value;
-    
-      // Chama o backend fantasma
-      await fetch('https://LucyLeak/Comments.github.io/comment.js', {
-        method: 'POST',
-        body: JSON.stringify({ nome, comentario })
-      });
-    }
-    </script>
+  <form id="comment-form">
+    <label>Seu nome:</label>
+    <input type="text" id="name" maxlength="30" placeholder="Digite seu nome" required>
+
+    <label>Comentário (máx. 100 caracteres):</label>
+    <textarea id="message" maxlength="100" placeholder="Escreva seu comentário..." required></textarea>
+    <div class="char-count" id="char-count">0/100</div>
+
+    <button type="submit" class="submit-btn">Enviar</button>
+  </form>
+
+  <section id="comments"></section>
+
+  <script>
+      const SUPABASE_URL = 'https://dxhdxudknmsbgcyljkow.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4aGR4dWRrbm1zYmdjeWxqa293Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcwNjczNTAsImV4cCI6MjA2MjY0MzM1MH0.7Koz40z7XeZjuy43-oZpJQFKJ_Oo5R1vHL-Hh-CJGPo';
+        
+        // Conexão com o banco de dados
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // Carrega comentários ao abrir a página
+        async function loadComments() {
+          const { data } = await supabase
+            .from('comments')
+            .select('*')
+            .order('created_at', { ascending: false });
+          comments = data || [];
+          renderComments();
+        }
+        
+        // Enviar comentário
+        form.addEventListener('submit', async function (e) {
+          e.preventDefault();
+          const name = document.getElementById('name').value.trim();
+          let message = messageInput.value.trim();
+          
+          if (name && message) {
+            // Salva no banco de dados
+            const { error } = await supabase
+              .from('comments')
+              .insert([{ name, message }]);
+            
+            if (!error) loadComments(); // Recarrega os comentários
+            form.reset();
+            charCount.textContent = '0/100';
+          }
+        });
+        
+        // Inicializa
+        loadComments();
+  </script>
 </body>
 </html>
