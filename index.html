@@ -165,41 +165,56 @@
 
   <script>
       const SUPABASE_URL = 'https://dxhdxudknmsbgcyljkow.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4aGR4dWRrbm1zYmdjeWxqa293Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcwNjczNTAsImV4cCI6MjA2MjY0MzM1MH0.7Koz40z7XeZjuy43-oZpJQFKJ_Oo5R1vHL-Hh-CJGPo';
-        
-        // Conexão com o banco de dados
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        
-        // Carrega comentários ao abrir a página
-        async function loadComments() {
-          const { data } = await supabase
+      const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4aGR4dWRrbm1zYmdjeWxqa293Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcwNjczNTAsImV4cCI6MjA2MjY0MzM1MH0.7Koz40z7XeZjuy43-oZpJQFKJ_Oo5R1vHL-Hh-CJGPo';
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      
+      // Configurações iniciais
+      let comments = [];
+      let isAdmin = false;
+      
+      // Carrega comentários do banco de dados
+      async function loadComments() {
+        try {
+          const { data, error } = await supabase
             .from('comments')
             .select('*')
             .order('created_at', { ascending: false });
-          comments = data || [];
-          renderComments();
-        }
-        
-        // Enviar comentário
-        form.addEventListener('submit', async function (e) {
-          e.preventDefault();
-          const name = document.getElementById('name').value.trim();
-          let message = messageInput.value.trim();
           
-          if (name && message) {
-            // Salva no banco de dados
+          if (error) throw error;
+          
+          comments = data;
+          renderComments();
+        } catch (err) {
+          console.error('Erro ao carregar:', err);
+        }
+      }
+      
+      // Envia novo comentário
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('name').value.trim();
+        const message = messageInput.value.trim();
+      
+        if (name && message) {
+          try {
             const { error } = await supabase
               .from('comments')
               .insert([{ name, message }]);
             
-            if (!error) loadComments(); // Recarrega os comentários
+            if (error) throw error;
+            
+            await loadComments(); // Recarrega após envio
             form.reset();
             charCount.textContent = '0/100';
+          } catch (err) {
+            alert('Erro ao enviar comentário!');
+            console.error(err);
           }
-        });
-        
-        // Inicializa
-        loadComments();
+        }
+      });
+      
+      // Inicia tudo quando a página carrega
+      document.addEventListener('DOMContentLoaded', loadComments);
   </script>
 </body>
 </html>
